@@ -1,0 +1,74 @@
+@{ ViewData["Title"] = "Import Excel"; }
+
+<div class="upload-page">
+    <div class="upload-card">
+        <div class="upload-icon-wrap">
+            <i class="fa-solid fa-file-excel"></i>
+        </div>
+        <h2>Import Students from Excel</h2>
+        <p class="upload-hint">Upload a <code>.xlsx</code> file with columns: Id, Name, Email, Department, Phone, Status.<br>Duplicate emails will be skipped automatically.</p>
+
+        <form method="post" enctype="multipart/form-data" asp-action="Upload" id="uploadForm">
+            <div class="drop-zone" id="dropZone">
+                <input type="file" name="file" id="fileInput" accept=".xlsx" hidden />
+                <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                <p id="dropText">Drag & drop your file here</p>
+                <span class="drop-sub">or</span>
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('fileInput').click()">Browse File</button>
+                <p id="fileName" class="file-name-preview"></p>
+            </div>
+
+            <div class="upload-actions">
+                <a href="/Student/Index" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Back</a>
+                <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+                    <i class="fa-solid fa-file-import"></i> Import Now
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="template-card">
+        <h3><i class="fa-solid fa-lightbulb"></i> Expected Column Format</h3>
+        <table class="data-table mini-table">
+            <thead>
+                <tr><th>Id</th><th>Name</th><th>Email</th><th>Department</th><th>Phone</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>Kirtan Barot</td><td>kirtan@@mail.com</td><td>CEAI</td><td>9876543210</td><td>Active</td></tr>
+            </tbody>
+        </table>
+        <a href="/Student/Export" class="btn btn-ghost" style="margin-top:1rem">
+            <i class="fa-solid fa-download"></i> Download Current Data as Template
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const fileInput  = document.getElementById('fileInput');
+const dropZone   = document.getElementById('dropZone');
+const fileName   = document.getElementById('fileName');
+const uploadBtn  = document.getElementById('uploadBtn');
+const dropText   = document.getElementById('dropText');
+
+function handleFile(file) {
+    if (!file) return;
+    fileName.textContent = '📄 ' + file.name;
+    uploadBtn.disabled = false;
+    dropText.textContent = 'File selected!';
+}
+
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const dt = new DataTransfer();
+    dt.items.add(e.dataTransfer.files[0]);
+    fileInput.files = dt.files;
+    handleFile(e.dataTransfer.files[0]);
+});
+</script>
+}

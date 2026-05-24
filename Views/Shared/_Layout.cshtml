@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — ExcelCRUD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-icon"><i class="fa-solid fa-table-cells"></i></span>
+            <span class="brand-name">ExcelCRUD</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/Student/Index" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                <i class="fa-solid fa-users"></i>
+                <span>Students</span>
+            </a>
+            <a href="/Student/Upload" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Upload" ? "active" : "")">
+                <i class="fa-solid fa-file-arrow-up"></i>
+                <span>Import Excel</span>
+            </a>
+            <a href="/Student/Export" class="nav-item">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>Export Excel</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <i class="fa-solid fa-circle-dot pulse-dot"></i>
+            <span>Excel-backed storage</span>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────── -->
+    <main class="main-content">
+        <div class="topbar">
+            <h1 class="page-title">@ViewData["Title"]</h1>
+            <div class="topbar-right">
+                <span class="badge-live"><i class="fa-regular fa-file-excel"></i> students.xlsx</span>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="toast toast-success"><i class="fa-solid fa-circle-check"></i> @TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="toast toast-error"><i class="fa-solid fa-circle-xmark"></i> @TempData["Error"]</div>
+        }
+
+        <div class="content-area">
+            @RenderBody()
+        </div>
+    </main>
+</div>
+
+<script>
+    // Auto-dismiss toasts
+    setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => {
+            t.style.animation = 'fadeSlideOut 0.4s forwards';
+            setTimeout(() => t.remove(), 400);
+        });
+    }, 3500);
+</script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>
