@@ -36,3 +36,4 @@ C:\Users\kirtan barot\Downloads\ExcelProject\ExcelProject\obj\Debug\net8.0\refin
 C:\Users\kirtan barot\Downloads\ExcelProject\ExcelProject\obj\Debug\net8.0\ExcelProject.pdb
 C:\Users\kirtan barot\Downloads\ExcelProject\ExcelProject\obj\Debug\net8.0\ExcelProject.genruntimeconfig.cache
 C:\Users\kirtan barot\Downloads\ExcelProject\ExcelProject\obj\Debug\net8.0\ref\ExcelProject.dll
+C:\Users\kirtan barot\Downloads\ExcelProject\ExcelProject\obj\Debug\net8.0\ExcelProject.sourcelink.json
