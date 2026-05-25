@@ -13,74 +13,113 @@ namespace ExcelProject.Controllers
             _excel = excel;
         }
 
-        // ─── INDEX ────────────────────────────────────────────────────────────
+        // ─── INDEX ─────────────────────────────────────────────
         public IActionResult Index(string? search, string? status)
         {
-            var list = _excel.GetStudents();
+            var students = _excel.GetStudents();
 
             if (!string.IsNullOrWhiteSpace(search))
-                list = list.Where(s =>
-                    s.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    s.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    s.Department.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+            {
+                search = search.Trim();
+
+                students = students.Where(s =>
+                    (!string.IsNullOrEmpty(s.Name) && s.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(s.Email) && s.Email.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(s.Department) && s.Department.Contains(search, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
 
             if (!string.IsNullOrWhiteSpace(status))
-                list = list.Where(s => s.Status == status).ToList();
+            {
+                students = students
+                    .Where(s => s.Status != null && s.Status.Equals(status, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
 
             ViewBag.Search = search;
             ViewBag.Status = status;
-            ViewBag.Total  = _excel.GetStudents().Count;
-            return View(list);
+            ViewBag.Total = _excel.GetStudents().Count;
+
+            return View(students);
         }
 
-        // ─── ADD ──────────────────────────────────────────────────────────────
+        // ─── ADD ───────────────────────────────────────────────
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Add(Student student)
         {
             if (!ModelState.IsValid)
                 return RedirectToAction(nameof(Index));
 
             _excel.Add(student);
+
             TempData["Success"] = $"Student \"{student.Name}\" added successfully!";
             return RedirectToAction(nameof(Index));
         }
 
-        // ─── EDIT GET ─────────────────────────────────────────────────────────
-        public IActionResult Edit(int id)
+        // ─── GET SINGLE STUDENT (FOR EDIT MODAL) ───────────────
+        [HttpGet]
+        public IActionResult GetStudent(int id)
         {
             var student = _excel.GetById(id);
             if (student == null) return NotFound();
+
             return Json(student);
         }
 
-        // ─── EDIT POST ────────────────────────────────────────────────────────
+        // ─── EDIT POST (FIXED) ────────────────────────────────
         [HttpPost]
-        public IActionResult EditPost(Student student)
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(Student student)
         {
-            var ok = _excel.Update(student);
+            if (student == null || student.Id <= 0)
+            {
+                TempData["Error"] = "Invalid student data.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var existing = _excel.GetById(student.Id);
+
+            if (existing == null)
+            {
+                TempData["Error"] = "Student not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            existing.Name = student.Name;
+            existing.Email = student.Email;
+            existing.Department = student.Department;
+            existing.Phone = student.Phone;
+            existing.Status = student.Status;
+
+            var ok = _excel.Update(existing);
+
             TempData[ok ? "Success" : "Error"] = ok
                 ? $"Student \"{student.Name}\" updated successfully!"
-                : "Student not found.";
+                : "Update failed.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        // ─── DELETE ───────────────────────────────────────────────────────────
+        // ─── DELETE ────────────────────────────────────────────
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            var student = _excel.GetById(id);
             var ok = _excel.Delete(id);
+
             TempData[ok ? "Success" : "Error"] = ok
-                ? $"Student deleted successfully."
+                ? "Student deleted successfully."
                 : "Student not found.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        // ─── UPLOAD VIEW ──────────────────────────────────────────────────────
+        // ─── UPLOAD ────────────────────────────────────────────
         public IActionResult Upload() => View();
 
-        // ─── UPLOAD POST ──────────────────────────────────────────────────────
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Upload(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -89,21 +128,26 @@ namespace ExcelProject.Controllers
                 return View();
             }
 
-            if (!Path.GetExtension(file.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
+            if (!Path.GetExtension(file.FileName)
+                .Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
                 TempData["Error"] = "Only .xlsx files are supported.";
                 return View();
             }
 
             var (added, skipped) = _excel.ImportFromFile(file);
-            TempData["Success"] = $"Import complete! {added} added, {skipped} skipped (duplicates).";
+
+            TempData["Success"] =
+                $"Import complete! {added} added, {skipped} skipped.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        // ─── EXPORT ───────────────────────────────────────────────────────────
+        // ─── EXPORT ────────────────────────────────────────────
         public IActionResult Export()
         {
             var bytes = _excel.ExportToBytes();
+
             return File(bytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"students_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
