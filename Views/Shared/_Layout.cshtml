@@ -7,17 +7,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/keyframe.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <style>
+        
+
+    </style>
 </head>
 <body>
 
 <div class="app-shell">
 
-    <!-- ══ BACKDROP (click to close sidebar) ══ -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar" id="sidebar">
 
         <a href="@Url.Action("Index", "Student")" class="sidebar-brand">
@@ -60,12 +63,10 @@
 
     </aside>
 
-    <!-- ══ MOBILE TOGGLE BUTTON ══ -->
     <button class="mobile-toggle" id="mobileToggle" onclick="toggleSidebar()">
         <i class="fa-solid fa-bars" id="toggleIcon"></i>
     </button>
 
-    <!-- ══ MAIN CONTENT ══ -->
     <main class="main-content">
         @RenderBody()
     </main>
@@ -75,10 +76,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const sidebar   = document.getElementById('sidebar');
-    const backdrop  = document.getElementById('sidebarBackdrop');
-    const toggleBtn = document.getElementById('mobileToggle');
-    const toggleIcon = document.getElementById('toggleIcon');
+    var sidebar    = document.getElementById('sidebar');
+    var backdrop   = document.getElementById('sidebarBackdrop');
+    var toggleIcon = document.getElementById('toggleIcon');
 
     function openSidebar() {
         sidebar.classList.add('open');
@@ -95,32 +95,34 @@
     }
 
     function toggleSidebar() {
-        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+        if (sidebar.classList.contains('open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
     }
 
-    /* Backdrop click → close */
-    backdrop.addEventListener('click', closeSidebar);
+    backdrop.addEventListener('click', function() {
+        closeSidebar();
+    });
 
-    /* Escape key → close */
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeSidebar();
     });
 
-    /* Nav link click on mobile → close sidebar */
     document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
         link.addEventListener('click', function(e) {
-            /* Ripple effect */
-            const r = document.createElement('span');
+            var self = this;
+            var r = document.createElement('span');
             r.className = 'ripple-circle';
-            const rect = this.getBoundingClientRect();
+            var rect = self.getBoundingClientRect();
             r.style.left = (e.clientX - rect.left) + 'px';
             r.style.top  = (e.clientY - rect.top)  + 'px';
-            this.appendChild(r);
+            self.appendChild(r);
             setTimeout(function() { r.remove(); }, 600);
 
-            /* Close on mobile */
             if (window.innerWidth <= 768) {
-                setTimeout(closeSidebar, 150);
+                setTimeout(function() { closeSidebar(); }, 150);
             }
         });
     });
