@@ -4,15 +4,167 @@
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-<link
-href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
-rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link rel="stylesheet" href="~/css/site.css" />
 
-<!-- ══════════════════════════════════════════════════
-     PAGE CONTENT
-════════════════════════════════════════════════Boom! -->
+<style>
+/* ── Toast Notification ── */
+@@keyframes toastIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@@keyframes toastOut {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(120%); opacity: 0; }
+}
+@@keyframes progressBar {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast-item {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 360px;
+  background: rgba(12,19,38,0.97);
+  border: 1px solid rgba(99,140,255,0.18);
+  border-radius: 14px;
+  padding: 14px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: toastIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+}
+
+.toast-item.hide {
+  animation: toastOut 0.35s ease forwards;
+}
+
+.toast-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast-icon {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.toast-icon.success { background: rgba(16,185,129,0.15); color: #10b981; }
+.toast-icon.error   { background: rgba(239,68,68,0.15);  color: #ef4444; }
+.toast-icon.info    { background: rgba(79,126,255,0.15);  color: #4f7eff; }
+.toast-icon.warning { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+
+.toast-texts { flex: 1; min-width: 0; }
+.toast-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+.toast-msg {
+  font-size: 12px;
+  color: #8a9dc5;
+  margin-top: 2px;
+}
+.toast-close {
+  background: none; border: none; color: #4a5980;
+  font-size: 13px; cursor: pointer; padding: 0;
+  transition: color 0.2s;
+}
+.toast-close:hover { color: #fff; }
+
+.toast-progress {
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(99,140,255,0.15);
+  overflow: hidden;
+  margin-top: 2px;
+}
+.toast-bar {
+  height: 100%;
+  border-radius: 2px;
+  animation: progressBar 3.5s linear forwards;
+}
+.toast-bar.success { background: #10b981; }
+.toast-bar.error   { background: #ef4444; }
+.toast-bar.info    { background: #4f7eff; }
+.toast-bar.warning { background: #f59e0b; }
+
+/* ── Dropdown Filter ── */
+.filter-dropdown-wrap {
+  position: relative;
+}
+.filter-dropdown-wrap select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.filter-dropdown-wrap::after {
+  content: '\f107';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7fa8;
+  pointer-events: none;
+  font-size: 13px;
+}
+
+/* ── Row hide for client filter ── */
+tr.row-hidden, .mobile-student-card.row-hidden {
+  display: none;
+}
+</style>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- TempData toast triggers -->
+@if (TempData["Success"] != null)
+{
+  <script>
+    document.addEventListener('DOMContentLoaded', () =>
+      showToast('success', 'Success', '@TempData["Success"]'));
+  </script>
+}
+@if (TempData["Error"] != null)
+{
+  <script>
+    document.addEventListener('DOMContentLoaded', () =>
+      showToast('error', 'Error', '@TempData["Error"]'));
+  </script>
+}
+@if (TempData["Info"] != null)
+{
+  <script>
+    document.addEventListener('DOMContentLoaded', () =>
+      showToast('info', 'Info', '@TempData["Info"]'));
+  </script>
+}
+
 <div class="page-wrap">
 
   <!-- HEADER -->
@@ -51,34 +203,32 @@ rel="stylesheet" />
     </div>
   </div>
 
-  <!-- TOOLBAR -->
-  <form method="get" asp-action="Index">
-    <div class="toolbar">
-      <div class="search-wrap">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" name="search" value="@ViewBag.Search" class="search-input"
-               placeholder="Search by name, email, department..." />
-      </div>
-      <select name="status" class="filter-select">
-        <option value="">All Status</option>
-        <option value="Active" selected="@(ViewBag.Status as string == "Active" ? "selected" : null)">Active</option>
-        <option value="Inactive" selected="@(ViewBag.Status as string == "Inactive" ? "selected" : null)">Inactive
-        </option>
-      </select>
-      <button type="submit" class="btn-filter">
-        <i class="fa-solid fa-filter"></i> Filter
-      </button>
-      <a href="@Url.Action("Index")" class="btn-filter" style="text-decoration:none;">
-        <i class="fa-solid fa-rotate-left"></i> Reset
-      </a>
+  <!-- TOOLBAR — Client-side filter (no page reload) -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="liveSearch" class="search-input"
+             placeholder="Search by name or email..." oninput="applyFilters()" />
     </div>
-  </form>
+
+    <div class="filter-dropdown-wrap">
+      <select id="statusFilter" class="filter-select" onchange="applyFilters()">
+        <option value="">All Status</option>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn-filter" onclick="clearFilters()">
+      <i class="fa-solid fa-rotate-left"></i> Reset
+    </button>
+  </div>
 
   <!-- TABLE CARD -->
   <div class="table-card">
     <div class="table-card-header">
       <h5><i class="fa-solid fa-table-list" style="color:var(--blue);margin-right:8px;"></i>All Students</h5>
-      <span class="count-badge">@Model.Count records</span>
+      <span class="count-badge" id="visibleCount">@Model.Count records</span>
     </div>
 
     @if (!Model.Any())
@@ -93,7 +243,7 @@ rel="stylesheet" />
     {
       <!-- ─── DESKTOP TABLE ─── -->
       <div class="desktop-table table-responsive">
-        <table class="modern-table">
+        <table class="modern-table" id="studentsTable">
           <thead>
             <tr>
               <th>ID</th>
@@ -105,25 +255,20 @@ rel="stylesheet" />
               <th style="text-align:center;">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="tableBody">
             @foreach (var s in Model)
             {
-              <tr>
+              <tr data-name="@s.Name.ToLower()" data-email="@s.Email.ToLower()" data-status="@s.Status">
                 <td><span class="id-chip">#@s.Id</span></td>
-
                 <td>
                   <div class="user-cell">
                     <div class="avatar-circle">@s.Name[0]</div>
                     <span class="user-name">@s.Name</span>
                   </div>
                 </td>
-
                 <td style="color:var(--muted);">@s.Email</td>
-
                 <td><span class="dept-badge">@s.Department</span></td>
-
                 <td style="color:var(--muted);">@s.Phone</td>
-
                 <td>
                   @if (s.Status == "Active")
                   {
@@ -134,7 +279,6 @@ rel="stylesheet" />
                     <span class="status-pill inactive">Inactive</span>
                   }
                 </td>
-
                 <td>
                   <div class="action-wrap" style="justify-content:center;">
                     <button class="btn-icon edit" onclick="openEditModal(@s.Id,
@@ -146,7 +290,7 @@ rel="stylesheet" />
                       <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                     <form method="post" asp-action="Delete" style="margin:0;"
-                          onsubmit="return confirm('Delete @s.Name permanently?')">
+                          onsubmit="return confirmDelete('@s.Name', this)">
                       @Html.AntiForgeryToken()
                       <input type="hidden" name="id" value="@s.Id" />
                       <button type="submit" class="btn-icon delete" title="Delete">
@@ -162,10 +306,10 @@ rel="stylesheet" />
       </div>
 
       <!-- ─── MOBILE CARD LIST ─── -->
-      <div class="mobile-list">
+      <div class="mobile-list" id="mobileList">
         @foreach (var s in Model)
         {
-          <div class="mobile-student-card">
+          <div class="mobile-student-card" data-name="@s.Name.ToLower()" data-email="@s.Email.ToLower()" data-status="@s.Status">
             <div class="mobile-card-top">
               <div class="mobile-card-info">
                 <div class="avatar-circle">@s.Name[0]</div>
@@ -185,7 +329,6 @@ rel="stylesheet" />
                 }
               </div>
             </div>
-
             <div class="mobile-card-meta">
               <div class="mobile-meta-item">
                 <i class="fa-solid fa-building-columns"></i>
@@ -196,14 +339,14 @@ rel="stylesheet" />
                 <span>@s.Phone</span>
               </div>
             </div>
-
             <div style="display:flex;gap:8px;border-top:1px solid var(--border2);padding-top:10px;margin-top:2px;">
               <button class="btn-icon edit"
                       style="flex:1;width:auto;height:36px;border-radius:8px;gap:6px;display:flex;align-items:center;justify-content:center;"
-                      onclick="openEditModal(@s.Id, '@s.Name', '@s.Email', '@s.Department', '@s.Phone', '@s.Status')">
+                      onclick="openEditModal(@s.Id,'@s.Name','@s.Email','@s.Department','@s.Phone','@s.Status')">
                 <i class="fa-solid fa-pen-to-square"></i> <span style="font-size:12px;font-weight:600;">Edit</span>
               </button>
-              <form method="post" asp-action="Delete" style="flex:1;margin:0;" onsubmit="return confirm('Delete @s.Name?')">
+              <form method="post" asp-action="Delete" style="flex:1;margin:0;"
+                    onsubmit="return confirmDelete('@s.Name', this)">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@s.Id" />
                 <button type="submit" class="btn-icon delete"
@@ -216,20 +359,25 @@ rel="stylesheet" />
         }
       </div>
     }
+
+    <!-- No results placeholder (hidden by default) -->
+    <div id="noResults" class="empty-state" style="display:none;">
+      <div class="empty-icon">🔍</div>
+      <h4>No Matches Found</h4>
+      <p>Try adjusting your search or filter.</p>
+    </div>
   </div>
 
 </div><!-- /page-wrap -->
 
-<!-- ══════════════════════════════════════════════════
-     ADD MODAL
-══════════════════════════════════════════════════ -->
+<!-- ══ ADD MODAL ══ -->
 <div id="addModal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head">
       <h4><i class="fa-solid fa-user-plus" style="color:var(--blue);margin-right:8px;"></i>Add Student</h4>
       <button class="modal-close" onclick="closeModal('addModal')"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <form method="post" asp-action="Add">
+    <form method="post" asp-action="Add" onsubmit="onFormSubmit('add')">
       @Html.AntiForgeryToken()
       <div class="modal-body-inner">
         <div class="form-row">
@@ -266,16 +414,14 @@ rel="stylesheet" />
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     EDIT MODAL
-══════════════════════════════════════════════════ -->
+<!-- ══ EDIT MODAL ══ -->
 <div id="editModal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head">
       <h4><i class="fa-solid fa-pen-to-square" style="color:var(--blue);margin-right:8px;"></i>Edit Student</h4>
       <button class="modal-close" onclick="closeModal('editModal')"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <form method="post" asp-action="Edit">
+    <form method="post" asp-action="Edit" onsubmit="onFormSubmit('edit')">
       @Html.AntiForgeryToken()
       <input type="hidden" id="edit-id" name="Id" />
       <div class="modal-body-inner">
@@ -314,38 +460,189 @@ rel="stylesheet" />
 </div>
 
 <script>
-  function openAddModal() {
-    document.getElementById('addModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
+/* ════════════════════════════════════════
+   SOUND — Web Audio API (no file needed)
+════════════════════════════════════════ */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let _ctx = null;
+function getCtx() { return _ctx || (_ctx = new AudioCtx()); }
 
-  function openEditModal(id, name, email, dept, phone, status) {
-    document.getElementById('edit-id').value = id;
-    document.getElementById('edit-name').value = name;
-    document.getElementById('edit-email').value = email;
-    document.getElementById('edit-dept').value = dept;
-    document.getElementById('edit-phone').value = phone;
-    document.getElementById('edit-status').value = status;
-    document.getElementById('editModal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
+function playSound(type) {
+  try {
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
 
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  // Close on backdrop click
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', function (e) {
-      if (e.target === this) closeModal(this.id);
-    });
-  });
-
-  // Close on Escape key
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
+    if (type === 'success') {
+      // Two rising notes — cheerful ding
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523, now);        // C5
+      osc.frequency.setValueAtTime(784, now + 0.12); // G5
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      osc.start(now); osc.stop(now + 0.45);
+    } else if (type === 'error') {
+      // Low descending tones
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.setValueAtTime(160, now + 0.15);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.start(now); osc.stop(now + 0.4);
+    } else if (type === 'delete') {
+      // Soft pop
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
+    } else {
+      // Neutral click
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.start(now); osc.stop(now + 0.18);
     }
+  } catch(e) {}
+}
+
+/* ════════════════════════════════════════
+   TOAST SYSTEM
+════════════════════════════════════════ */
+const TOAST_ICONS = {
+  success: 'fa-circle-check',
+  error:   'fa-circle-xmark',
+  info:    'fa-circle-info',
+  warning: 'fa-triangle-exclamation'
+};
+
+function showToast(type, title, msg) {
+  playSound(type === 'success' ? 'success' : type === 'error' ? 'error' : 'neutral');
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast-item';
+  t.innerHTML = `
+    <div class="toast-top">
+      <div class="toast-icon ${type}"><i class="fa-solid ${TOAST_ICONS[type]||'fa-bell'}"></i></div>
+      <div class="toast-texts">
+        <div class="toast-title">${title}</div>
+        ${msg ? `<div class="toast-msg">${msg}</div>` : ''}
+      </div>
+      <button class="toast-close" onclick="dismissToast(this.closest('.toast-item'))">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="toast-progress"><div class="toast-bar ${type}"></div></div>
+  `;
+  container.appendChild(t);
+  setTimeout(() => dismissToast(t), 3500);
+}
+
+function dismissToast(el) {
+  if (!el || el.classList.contains('hide')) return;
+  el.classList.add('hide');
+  setTimeout(() => el.remove(), 380);
+}
+
+/* ════════════════════════════════════════
+   CLIENT-SIDE FILTER
+════════════════════════════════════════ */
+function applyFilters() {
+  const search = document.getElementById('liveSearch').value.trim().toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+
+  // Table rows
+  const rows = document.querySelectorAll('#tableBody tr');
+  // Mobile cards
+  const cards = document.querySelectorAll('#mobileList .mobile-student-card');
+
+  let visible = 0;
+
+  function matches(el) {
+    const name  = el.dataset.name  || '';
+    const email = el.dataset.email || '';
+    const st    = el.dataset.status || '';
+    const textOk   = !search || name.includes(search) || email.includes(search);
+    const statusOk = !status || st === status;
+    return textOk && statusOk;
+  }
+
+  rows.forEach(r => {
+    const show = matches(r);
+    r.classList.toggle('row-hidden', !show);
+    if (show) visible++;
   });
+  cards.forEach(c => c.classList.toggle('row-hidden', !matches(c)));
+
+  // Update count badge
+  document.getElementById('visibleCount').textContent = visible + ' records';
+
+  // Show/hide no-results placeholder
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+  const tableEl = document.getElementById('studentsTable');
+  const mobileEl = document.getElementById('mobileList');
+  if (tableEl) tableEl.style.display = visible === 0 ? 'none' : '';
+  if (mobileEl) mobileEl.style.display = visible === 0 ? 'none' : '';
+}
+
+function clearFilters() {
+  document.getElementById('liveSearch').value = '';
+  document.getElementById('statusFilter').value = '';
+  applyFilters();
+}
+
+/* ════════════════════════════════════════
+   MODAL HELPERS
+════════════════════════════════════════ */
+function openAddModal() {
+  playSound('neutral');
+  document.getElementById('addModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function openEditModal(id, name, email, dept, phone, status) {
+  playSound('neutral');
+  document.getElementById('edit-id').value    = id;
+  document.getElementById('edit-name').value  = name;
+  document.getElementById('edit-email').value = email;
+  document.getElementById('edit-dept').value  = dept;
+  document.getElementById('edit-phone').value = phone;
+  document.getElementById('edit-status').value = status;
+  document.getElementById('editModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function onFormSubmit(type) {
+  playSound('success');
+  closeModal(type === 'add' ? 'addModal' : 'editModal');
+}
+
+function confirmDelete(name, form) {
+  if (confirm('Delete ' + name + ' permanently?')) {
+    playSound('delete');
+    return true;
+  }
+  return false;
+}
+
+/* Close on backdrop click / Escape */
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')
+    document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
+});
 </script>
