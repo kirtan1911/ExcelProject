@@ -62,3 +62,53 @@
   0%,100% { box-shadow: 0 0 24px rgba(79,126,255,0.2); }
   50%      { box-shadow: 0 0 48px rgba(79,126,255,0.45); }
 }
+
+/* ── Lightning / Festival Border Animations ── */
+
+/* Rotate the conic gradient for a chasing-light effect */
+@keyframes borderSpin {
+  0%   { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+
+/* Each card light has its own hue-shift so they feel independent */
+@keyframes lightBlue {
+  0%,100% { opacity: 0.7; filter: hue-rotate(0deg)   brightness(1.2); }
+  50%      { opacity: 1;   filter: hue-rotate(30deg)  brightness(1.9); }
+}
+@keyframes lightGreen {
+  0%,100% { opacity: 0.7; filter: hue-rotate(0deg)   brightness(1.2); }
+  50%      { opacity: 1;   filter: hue-rotate(-40deg) brightness(1.9); }
+}
+@keyframes lightRed {
+  0%,100% { opacity: 0.7; filter: hue-rotate(0deg)   brightness(1.2); }
+  50%      { opacity: 1;   filter: hue-rotate(20deg)  brightness(1.9); }
+}
+@keyframes lightPurple {
+  0%,100% { opacity: 0.7; filter: hue-rotate(0deg)   brightness(1.2); }
+  50%      { opacity: 1;   filter: hue-rotate(-20deg) brightness(1.9); }
+}
+
+/* The pseudo-element border rotates independently */
+@keyframes rotateBorderBlue {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes rotateBorderGreen {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes rotateBorderRed {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes rotateBorderPurple {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Subtle card float on hover */
+@keyframes cardFloat {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-3px); }
+}
