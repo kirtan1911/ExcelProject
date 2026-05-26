@@ -1,0 +1,61 @@
+/* ═══════════════════════════════════════════
+           KEYFRAME ANIMATIONS
+        ═══════════════════════════════════════════ */
+        @keyframes sidebarSlideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to   { transform: translateX(0);     opacity: 1; }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes navItemIn {
+            from { opacity: 0; transform: translateX(-16px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes brandPulse {
+            0%,100% { box-shadow: 0 0 18px rgba(79,126,255,0.35); }
+            50%      { box-shadow: 0 0 32px rgba(79,126,255,0.65); }
+        }
+        @keyframes dotBlink {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.3; }
+        }
+        @keyframes ripple {
+            0%   { transform: scale(0); opacity: 0.5; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        @keyframes contentFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glowLine {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                animation: none;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 4px 0 40px rgba(0,0,0,0.6);
+            }
+            .main-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+            .mobile-toggle {
+                display: grid;
+            }
+            .sidebar-backdrop {
+                display: block;
+                pointer-events: none;
+            }
+            .sidebar-backdrop.open {
+                pointer-events: auto;
+            }
+        }
